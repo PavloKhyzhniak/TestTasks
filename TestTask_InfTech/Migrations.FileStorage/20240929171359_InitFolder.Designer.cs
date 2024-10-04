@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TestTask_InfTech.DB;
@@ -11,9 +12,11 @@ using TestTask_InfTech.DB;
 namespace TestTask_InfTech.Migrations.FileStorage
 {
     [DbContext(typeof(FileStorageDB))]
-    partial class FileStorageDBModelSnapshot : ModelSnapshot
+    [Migration("20240929171359_InitFolder")]
+    partial class InitFolder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -12,6 +12,10 @@ string connection = builder.Configuration.GetConnectionString("DefaultConnection
 // добавляем контекст ApplicationContext в качестве сервиса в приложение
 builder.Services.AddDbContext<FileStorageDB>(options => options.UseNpgsql(connection));
 
+
+builder.Services.AddDistributedMemoryCache();// добавляем IDistributedMemoryCache
+builder.Services.AddSession();  // добавляем сервисы сессии
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,8 +30,14 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthorization();
+
+app.MapAreaControllerRoute(
+    name: "Folders",
+    areaName: "FileStorageArea",
+    pattern: "FileStorage/{controller=Folders}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

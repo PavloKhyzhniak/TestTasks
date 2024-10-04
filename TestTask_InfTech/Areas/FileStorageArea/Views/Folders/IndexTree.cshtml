@@ -1,0 +1,68 @@
+﻿@model IEnumerable<TestTask_InfTech.ViewModels.SubNodeModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+<script>
+    function ViewDocument(aId) {
+        $("#loader").fadeIn();
+        var data = { aId: aId };
+        $.ajax({
+            type: "POST",
+            url: '/FileStorage/Folders/OnPost',
+            data: data,
+            dataType: "json"
+        }).done(function (data) {
+            $("#content").empty();
+            $.each(data, function (i, item) {
+                $("#content").append("<p>" + item + "</p>");
+            });
+            $("#loader").fadeOut();
+        })
+    }
+</script>
+<script type="text/javascript">
+    $(window).load(function () {
+        $("#loader").fadeOut(1000);
+    });
+</script>
+
+<div class="row">
+
+    <div class="col-md-3">
+        <div class="sidenav">
+            <div id="loader"></div>
+            <h2 style="padding-left:15px">Files</h2>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.Partial("_TreeList", item)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <h2>Preview</h2>
+        <div id="content">
+            <h2>Preview</h2>
+
+        </div>
+    </div>
+
+</div>
+

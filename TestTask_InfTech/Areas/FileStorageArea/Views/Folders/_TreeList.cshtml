@@ -1,0 +1,42 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@model TestTask_InfTech.ViewModels.SubNodeModel
+
+@{
+    var currentId = @ViewBag.CurrentFolderElement.ToString();
+    var nodeId = @Model.CurrentFolder.FolderId.ToString();
+}
+
+<ul>
+
+    @if (currentId == nodeId)
+    {
+        <a asp-action="Choice" asp-route-aid="@Model.CurrentFolder.FolderId" style="background-color:red">
+            @Model.CurrentFolder.Name
+        </a>
+    }
+    else
+    {
+        <a asp-action="Choice" asp-route-aid="@Model.CurrentFolder.FolderId">
+            @Model.CurrentFolder.Name
+        </a>
+    }
+
+    @foreach (var node in Model.ChildrenFolder)
+    {
+        @Html.Partial("_TreeList", node)
+    }
+</ul>
+<ul>
+    @foreach (var node in Model.ChildrenFile)
+    {
+        <li>
+            <a href="#" onclick="ViewDocument('@node.FileId')">
+                <img src=@node.Extension.Icon asp-append-version="true" width="20" height="20"/>@node.Name
+            </a>
+        </li>
+    }
+
+</ul>

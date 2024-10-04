@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "UploadSuccess";
+}
+
+<h1>File Uploaded Successfully</h1>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
