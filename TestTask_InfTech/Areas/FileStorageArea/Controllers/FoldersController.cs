@@ -3,12 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using TestTask_InfTech.DB;
 using TestTask_InfTech.DB.Model;
 using TestTask_InfTech.ViewModels;
-using System.IO;
-using System.Xml.Serialization;
-using static NuGet.Packaging.PackagingConstants;
-using GroupDocs.Viewer.Options;
-using GroupDocs.Viewer.Results;
-using GroupDocs.Viewer;
 
 namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
 {
@@ -44,7 +38,7 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
             var tmpSubNodeModels = new List<SubNodeModel>();
             var tmpFoldersGuid = new List<Guid>();
             var tmpFilesGuid = new List<Guid>();
-            
+
             _ = await _context.Ext.ToListAsync();
 
             await PrepareSubNode(tmpFolders, tmpSubNodeModels, tmpFoldersGuid, tmpFilesGuid);
@@ -74,7 +68,7 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
                     ChildrenFolder = tmpSubNodeModels,
                     CurrentFolder = tmpFolder,
                 };
-                var tmpChildrenFile = await _context.Files.Where(a => a.Folder.FolderId.Equals(tmpFolder.FolderId) && a.Extension!=null).ToListAsync();
+                var tmpChildrenFile = await _context.Files.Where(a => a.Folder.FolderId.Equals(tmpFolder.FolderId) && a.Extension != null).ToListAsync();
                 tmpNode.ChildrenFile = tmpChildrenFile;
 
                 aSubNodeModels.Add(tmpNode);
@@ -229,6 +223,7 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
         {
             if (aId == null)
             {
+                //TODO продумать отображения под некорректные аргументы, подать пользователю больше информации о текущих действиях
                 return RedirectToAction("Index");
                 //                return NotFound();
             }
@@ -268,6 +263,11 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Удаление папки
+        /// </summary>
+        /// <param name="aFolder"></param>
+        /// <returns></returns>
         private async Task<bool> DeleteFolderAsync(Folder aFolder)
         {
             var tmpFolderPath = await GetRealFolderPathAsync(aFolder, aFolder.Name);
@@ -297,6 +297,11 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
             return false;
         }
 
+        /// <summary>
+        /// Удаление файла
+        /// </summary>
+        /// <param name="aFolder"></param>
+        /// <returns></returns>
         private async Task<bool> DeleteFilesAsync(Folder aFolder)
         {
             var tmpFolderPath = await GetRealFolderPathAsync(aFolder, aFolder.Name);
@@ -331,6 +336,11 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
             return false;
         }
 
+        /// <summary>
+        /// Удаление(очистка) каталога рекурсивная(с вложениями)
+        /// </summary>
+        /// <param name="aFolder"></param>
+        /// <returns></returns>
         private async Task DeleteAllFoldersAsync(Folder aFolder)
         {
             var tmpChildFolderExist = await _context.Folder.Where(a => a.Parental.FolderId.Equals(aFolder.FolderId)).ToListAsync();
@@ -351,6 +361,11 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
             }
         }
 
+        /// <summary>
+        /// Удаление всех файлов в текущем каталоге
+        /// </summary>
+        /// <param name="aFolder"></param>
+        /// <returns></returns>
         private async Task DeleteAllFilesAsync(Folder aFolder)
         {
             var tmpChildFileExist = await _context.Files.Where(a => a.Folder.FolderId.Equals(aFolder.FolderId)).ToListAsync();
@@ -392,7 +407,7 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
             {
                 if (SingleFile != null && SingleFile.Length > 0)
                 {
-                    var tmpFolder = await _context.Folder.Include(a=>a.Parental).FirstOrDefaultAsync(a=>a.FolderId==aId);
+                    var tmpFolder = await _context.Folder.Include(a => a.Parental).FirstOrDefaultAsync(a => a.FolderId == aId);
                     if (tmpFolder != null)
                     {
                         var tmpFolderPath = await GetRealFolderPathAsync(tmpFolder, tmpFolder.Name);
@@ -419,6 +434,7 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
                                 if (tmpFindExtension == null)
                                 {
                                     //TODO перенести заполнение поддерживаемых расширений файлов в другое место
+                                    //для каждого типа расширений(поддерживаемых) проработать собственное отображение информации(подсветка, картинки, тексты)
                                     var tmpExtension = new DB.Model.Extension()
                                     {
                                         ExtensionId = new Guid(),
@@ -468,7 +484,7 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
         {
             int pageCount = 0;
 
-            var tmpFile = await _context.Files.Include(a => a.Extension).Include(a=>a.Folder).FirstOrDefaultAsync(a => a.FileId == aId);
+            var tmpFile = await _context.Files.Include(a => a.Extension).Include(a => a.Folder).FirstOrDefaultAsync(a => a.FileId == aId);
             if (tmpFile?.Folder != null)
             {
                 var tmpFolder = await _context.Folder.Include(a => a.Parental).FirstOrDefaultAsync(a => a.FolderId == tmpFile.Folder.FolderId);
@@ -484,28 +500,16 @@ namespace TestTask_InfTech.Areas.FileStorageArea.Controllers
 
                 if (System.IO.File.Exists(tmpFullServerFilePath))
                 {
+                    //TODO продумать кодировку для корректного отображения
+                    //TODO продумать пагинацию для порционнной подачи содержимого файла
+                    //TODO продумать хелпер для отображения разных файлов(картинок и текстов например)
                     var dataFile = System.IO.File.ReadAllLines(tmpFullServerFilePath);
                     if (dataFile != null)
                         return new JsonResult(dataFile);
                 }
-                //string imageFilesFolder = Path.Combine(outputPath, Path.GetFileName(tmpFile.Name).Replace(".", "_"));
-                //if (!Directory.Exists(imageFilesFolder))
-                //{
-                //    Directory.CreateDirectory(imageFilesFolder);
-                //}
-                //string imageFilesPath = Path.Combine(imageFilesFolder, "page-{0}.png");
-                //using (Viewer viewer = new Viewer(tmpFullServerFilePath))
-                //{
-                //    //Get document info
-                //    ViewInfo info = viewer.GetViewInfo(ViewInfoOptions.ForPngView(false));
-                //    pageCount = info.Pages.Count;
-                //    //Set options and render document
-                //    PngViewOptions options = new PngViewOptions(imageFilesPath);
-                //    viewer.View(options);
-                //}
             }
-            
+
             return new JsonResult(pageCount);
-            }
+        }
     }
 }
